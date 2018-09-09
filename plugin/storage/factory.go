@@ -37,9 +37,10 @@ const (
 	elasticsearchStorageType = "elasticsearch"
 	memoryStorageType        = "memory"
 	kafkaStorageType         = "kafka"
+	aliyunlogStorageType     = "aliyun-log"
 )
 
-var allStorageTypes = []string{cassandraStorageType, elasticsearchStorageType, memoryStorageType, kafkaStorageType}
+var allStorageTypes = []string{aliyunlogStorageType, cassandraStorageType, elasticsearchStorageType, memoryStorageType, kafkaStorageType}
 
 // Factory implements storage.Factory interface as a meta-factory for storage components.
 type Factory struct {
