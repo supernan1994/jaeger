@@ -182,11 +182,11 @@ func (aH *APIHandler) getOperationsLegacy(w http.ResponseWriter, r *http.Request
 
 func (aH *APIHandler) getOperations(w http.ResponseWriter, r *http.Request) {
 	service := r.FormValue(serviceParam)
-	if service == "" {
-		if aH.handleError(w, ErrServiceParameterRequired, http.StatusBadRequest) {
-			return
-		}
-	}
+	//if service == "" {
+	//	if aH.handleError(w, ErrServiceParameterRequired, http.StatusBadRequest) {
+	//		return
+	//	}
+	//}
 	operations, err := aH.spanReader.GetOperations(r.Context(), service)
 	if aH.handleError(w, err, http.StatusInternalServerError) {
 		return

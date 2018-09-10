@@ -204,7 +204,9 @@ func (s *SpanReader) GetServices(ctx context.Context) ([]string, error) {
 	}
 	s.logProgressIncomplete(topic, from, to, queryExp, maxLineNum, offset, reverse, resp.Progress)
 
-	return logsToStringArray(resp.Logs, serviceNameField)
+	serviceNames, err := logsToStringArray(resp.Logs, serviceNameField)
+	serviceNames = append(serviceNames, "")
+	return  serviceNames, err
 }
 
 // GetOperations returns all operations for a specific service traced by Jaeger
@@ -418,7 +420,6 @@ func (s *SpanReader) buildFindTracesQuery(traceQuery *spanstore.TraceQueryParame
 		tagQuery := s.buildTagQuery(k, v)
 		subQueries = append(subQueries, tagQuery)
 	}
-	fmt.Printf("traceQuery.Tags: %+v, subQueries: %+v\n", traceQuery.Tags, subQueries)
 	query := s.combineSubQueries(subQueries)
 	if query != "" {
 		query += " "

@@ -177,9 +177,9 @@ func (p *queryParser) parseDuration(durationParam string, r *http.Request) (time
 }
 
 func (p *queryParser) validateQuery(traceQuery *traceQueryParameters) error {
-	if len(traceQuery.traceIDs) == 0 && traceQuery.ServiceName == "" {
-		return ErrServiceParameterRequired
-	}
+	//if len(traceQuery.traceIDs) == 0 && traceQuery.ServiceName == "" {
+	//	return ErrServiceParameterRequired
+	//}
 	if traceQuery.DurationMin != 0 && traceQuery.DurationMax != 0 {
 		if traceQuery.DurationMax < traceQuery.DurationMin {
 			return errMaxDurationGreaterThanMin
