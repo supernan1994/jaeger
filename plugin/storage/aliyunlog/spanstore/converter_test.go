@@ -24,6 +24,7 @@ import (
 	//"github.com/kr/pretty"
 	"github.com/spf13/cast"
 	"github.com/stretchr/testify/assert"
+	"github.com/kr/pretty"
 )
 
 var (
@@ -182,33 +183,33 @@ func convertLogGroupToMap(logGroup *sls.LogGroup) map[string]string {
 
 
 func TestToSpan(t *testing.T) {
-	//expectedSpan := getTestUnusualJaegerSpan()
-	////expectedSpan.Tags.Sort()
-	////expectedSpan.Process.Tags.Sort()
-	//actualSpan, err := ToSpan(getTestLog())
-	////actualSpan.Tags.Sort()
-	////actualSpan.Process.Tags.Sort()
-	//assert.NoError(t, err)
-	//if !assert.EqualValues(t, expectedSpan, actualSpan) {
-	//	for _, diff := range pretty.Diff(expectedSpan, actualSpan) {
-	//		t.Log(diff)
-	//	}
-	//}
+	expectedSpan := getTestUnusualJaegerSpan()
+	//expectedSpan.Tags.Sort()
+	//expectedSpan.Process.Tags.Sort()
+	actualSpan, err := ToSpan(getTestLog())
+	//actualSpan.Tags.Sort()
+	//actualSpan.Process.Tags.Sort()
+	assert.NoError(t, err)
+	if !assert.EqualValues(t, expectedSpan, actualSpan) {
+		for _, diff := range pretty.Diff(expectedSpan, actualSpan) {
+			t.Log(diff)
+		}
+	}
 }
 
 func TestFromSpan(t *testing.T) {
-	//span := getTestJaegerSpan()
-	//logGroup, err := FromSpan(span, "topic", "0.0.0.0")
-	//assert.Nil(t, err)
-	//assert.Equal(t, "topic", *logGroup.Topic)
-	//assert.Equal(t, "0.0.0.0", *logGroup.Source)
-	//expectedLog := getTestLog()
-	//actualLog := convertLogGroupToMap(logGroup)
-	//if !assert.EqualValues(t, expectedLog, actualLog) {
-	//	for _, diff := range pretty.Diff(expectedLog, actualLog) {
-	//		t.Log(diff)
-	//	}
-	//}
+	span := getTestJaegerSpan()
+	logGroup, err := FromSpan(span, "topic", "0.0.0.0")
+	assert.Nil(t, err)
+	assert.Equal(t, "topic", *logGroup.Topic)
+	assert.Equal(t, "0.0.0.0", *logGroup.Source)
+	expectedLog := getTestLog()
+	actualLog := convertLogGroupToMap(logGroup)
+	if !assert.EqualValues(t, expectedLog, actualLog) {
+		for _, diff := range pretty.Diff(expectedLog, actualLog) {
+			t.Log(diff)
+		}
+	}
 }
 
 func TestAppendReferences(t *testing.T) {

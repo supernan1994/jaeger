@@ -275,6 +275,7 @@ func (c converter) toTraces(logs []map[string]string) ([]*model.Trace, error) {
 }
 
 func (c converter) toTrace(log map[string]string) (*model.Trace, error) {
+
 	span, err := c.toSpan(log)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to convert log to span")

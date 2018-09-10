@@ -28,7 +28,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/uber/jaeger-lib/metrics"
 	"go.uber.org/zap"
-	"encoding/json"
+	"sync"
+	"sort"
 )
 
 const (
@@ -278,9 +279,9 @@ func validateQuery(p *spanstore.TraceQueryParameters) error {
 	if p == nil {
 		return ErrMalformedRequestObject
 	}
-	if p.ServiceName == "" && len(p.Tags) > 0 {
-		return ErrServiceNameNotSet
-	}
+	//if p.ServiceName == "" && len(p.Tags) > 0 {
+	//	return ErrServiceNameNotSet
+	//}
 	if p.StartTimeMin.IsZero() || p.StartTimeMax.IsZero() {
 		return ErrStartAndEndTimeNotSet
 	}
@@ -318,12 +319,32 @@ func (s *SpanReader) findTraceIDs(traceQuery *spanstore.TraceQueryParameters) ([
 	return logsToStringArray(resp.Logs, traceIDField)
 }
 
+
+type SortTrace struct {
+	trace *model.Trace
+	index int
+}
+
+type TraceSorter struct {
+	traces []SortTrace
+}
+
+func (s *TraceSorter) Len() int {
+	return len(s.traces)
+}
+func (s *TraceSorter) Swap(i, j int) {
+	s.traces[i], s.traces[j] = s.traces[j], s.traces[i]
+}
+func (s *TraceSorter) Less(i, j int) bool {
+	return s.traces[i].index < s.traces[j].index
+}
+
+
 func (s *SpanReader) findTraces(traceQuery *spanstore.TraceQueryParameters) ([]*model.Trace, error) {
 	topic := emptyTopic
 	from := traceQuery.StartTimeMin.Unix()
 	to := traceQuery.StartTimeMax.Unix() + 1
 	queryExp := s.buildFindTracesQuery(traceQuery)
-	fmt.Printf("queryExp: %v\n", queryExp)
 	maxLineNum := int64(0)
 	offset := int64(0)
 	reverse := false
@@ -334,9 +355,42 @@ func (s *SpanReader) findTraces(traceQuery *spanstore.TraceQueryParameters) ([]*
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to find traces")
 	}
-	str, _ := json.Marshal(resp)
-	fmt.Printf("resp: %+v\n", string(str))
-	return ToTraces(resp.Logs)
+
+	data := make(chan SortTrace, len(resp.Logs))
+	wg := &sync.WaitGroup{}
+	for i, log := range resp.Logs {
+		for k, v := range log {
+			if k == traceIDField {
+				wg.Add(1)
+				traceId, err := model.TraceIDFromString(v)
+				if err != nil {
+					return nil, errors.Wrap(err, "Failed to format traceId")
+				}
+				go s.asyncGetTrace(context.Background(), traceId, wg, i, data)
+				break
+			}
+		}
+	}
+	wg.Wait()
+	close(data)
+
+	sortTraces := []SortTrace{}
+	for d := range data {
+		sortTraces = append(sortTraces, d)
+	}
+	sort.Sort(&TraceSorter{traces: sortTraces})
+	traces := []*model.Trace{}
+	for _, trace  :=  range sortTraces {
+		traces = append(traces, trace.trace)
+	}
+
+	return traces, nil
+}
+
+func  (s *SpanReader) asyncGetTrace(ctx context.Context, traceId model.TraceID, wg *sync.WaitGroup, index int, data chan SortTrace) {
+	defer wg.Done()
+	trace, _ := s.GetTrace(context.Background(), traceId)
+	data <- SortTrace{trace: trace, index: index}
 }
 
 func (s *SpanReader) buildFindTracesQuery(traceQuery *spanstore.TraceQueryParameters) string {
