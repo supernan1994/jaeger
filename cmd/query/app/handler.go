@@ -212,6 +212,7 @@ func (aH *APIHandler) search(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
+		fmt.Printf("tQuery: %+v\n", tQuery)
 		tracesFromStorage, err = aH.spanReader.FindTraces(r.Context(), &tQuery.TraceQueryParameters)
 		if aH.handleError(w, err, http.StatusInternalServerError) {
 			return

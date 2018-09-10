@@ -30,6 +30,7 @@ import (
 	"github.com/jaegertracing/jaeger/storage"
 	"github.com/jaegertracing/jaeger/storage/dependencystore"
 	"github.com/jaegertracing/jaeger/storage/spanstore"
+	"github.com/jaegertracing/jaeger/plugin/storage/aliyunlog"
 )
 
 const (
@@ -80,6 +81,8 @@ func (f *Factory) getFactoryOfType(factoryType string) (storage.Factory, error) 
 		return memory.NewFactory(), nil
 	case kafkaStorageType:
 		return kafka.NewFactory(), nil
+	case aliyunlogStorageType:
+		return aliyunlog.NewFactory(), nil
 	default:
 		return nil, fmt.Errorf("Unknown storage type %s. Valid types are %v", factoryType, allStorageTypes)
 	}

@@ -28,6 +28,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/uber/jaeger-lib/metrics"
 	"go.uber.org/zap"
+	"encoding/json"
 )
 
 const (
@@ -58,8 +59,17 @@ const (
 	progressComplete   = "Complete"
 	progressIncomplete = "InComplete"
 
-	querySuffixTemplate = `| select {traceIDField}, max_by("{serviceNameField}", {durationField}) as "{serviceNameField}", max_by({operationNameField}, {durationField}) as {operationNameField}, max_by({startTimeField}, {durationField}) as {startTimeField}, max_by({durationField}, {durationField}) as {durationField} from (select {traceIDField}, "{serviceNameField}", {operationNameField}, {startTimeField}, {durationField} from log limit {maxLineNum}) group by {traceIDField} limit {numTraces}`
+	querySuffixTemplate = `| select {traceIDField}, max_by("{serviceNameField}",
+{durationField}) as "{serviceNameField}",
+max_by({operationNameField}, {durationField}) as {operationNameField},
+max_by({startTimeField}, {durationField}) as {startTimeField},
+max_by({durationField}, {durationField}) as {durationField}
+from (
+select {traceIDField}, "{serviceNameField}", {operationNameField}, {startTimeField}, {durationField}
+from log limit {maxLineNum}) group by {traceIDField} limit {numTraces}`
 )
+//	querySuffixTemplate = `| select * order by duration desc limit 20`
+
 
 var (
 	// ErrServiceNameNotSet occurs when attempting to query with an empty service name
@@ -313,6 +323,7 @@ func (s *SpanReader) findTraces(traceQuery *spanstore.TraceQueryParameters) ([]*
 	from := traceQuery.StartTimeMin.Unix()
 	to := traceQuery.StartTimeMax.Unix() + 1
 	queryExp := s.buildFindTracesQuery(traceQuery)
+	fmt.Printf("queryExp: %v\n", queryExp)
 	maxLineNum := int64(0)
 	offset := int64(0)
 	reverse := false
@@ -323,7 +334,8 @@ func (s *SpanReader) findTraces(traceQuery *spanstore.TraceQueryParameters) ([]*
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to find traces")
 	}
-
+	str, _ := json.Marshal(resp)
+	fmt.Printf("resp: %+v\n", string(str))
 	return ToTraces(resp.Logs)
 }
 
@@ -352,7 +364,7 @@ func (s *SpanReader) buildFindTracesQuery(traceQuery *spanstore.TraceQueryParame
 		tagQuery := s.buildTagQuery(k, v)
 		subQueries = append(subQueries, tagQuery)
 	}
-
+	fmt.Printf("traceQuery.Tags: %+v, subQueries: %+v\n", traceQuery.Tags, subQueries)
 	query := s.combineSubQueries(subQueries)
 	if query != "" {
 		query += " "
@@ -421,6 +433,7 @@ func (s *SpanReader) getQuerySuffix(maxLineNum int64, numTraces int) string {
 		"{operationNameField}", operationNameField,
 		"{durationField}", durationField,
 		"{startTimeField}", startTimeField,
+		"{spanIdField}", spanIDField,
 		"{maxLineNum}", strconv.FormatInt(maxLineNum, 10),
 		"{numTraces}", strconv.Itoa(numTraces),
 	)
