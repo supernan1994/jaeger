@@ -4,6 +4,11 @@
 
 # Jaeger - a Distributed Tracing System
 
+本项目主要针对Jaeger最新版本做了一下改动：
+
+    * 使用阿里云log store做数据存储
+    * 支持全局检索
+
 Jaeger, inspired by [Dapper][dapper] and [OpenZipkin](http://zipkin.io),
 is a distributed tracing system released as open source by [Uber Technologies][ubeross].
 It can be used for monitoring microservices-based distributed systems:

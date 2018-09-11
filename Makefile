@@ -63,7 +63,7 @@ COLOR_PASS=$(shell printf "\033[32mPASS\033[0m")
 COLOR_FAIL=$(shell printf "\033[31mFAIL\033[0m")
 COLOR_FIXME=$(shell printf "\033[31mFIXME\033[0m")
 COLORIZE=$(SED) ''/PASS/s//$(COLOR_PASS)/'' | $(SED) ''/FAIL/s//$(COLOR_FAIL)/''
-DOCKER_NAMESPACE?=jaegertracing
+DOCKER_NAMESPACE?=registry.cn-beijing.aliyuncs.com/im-saas
 DOCKER_TAG?=latest
 
 MOCKERY=mockery
@@ -177,6 +177,7 @@ docker-hotrod:
 build_ui: install-statik
 	cd jaeger-ui && yarn install && cd packages/jaeger-ui && yarn build
 	(cd cmd/query/app/ui/actual; statik -f -src ../../../../../jaeger-ui/packages/jaeger-ui/build)
+	cp -r jaeger-ui/packages/jaeger-ui/build cmd/query/jaeger-ui-build
 
 .PHONY: build-all-in-one-linux
 build-all-in-one-linux: build_ui
