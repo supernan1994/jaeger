@@ -9,5 +9,5 @@
   * 使用阿里云logstore做数据存储
   * 支持全局检索
 
-感谢阿里云logstore fork的[jaeger项目](https://github.com/aliyun/aliyun-log-jaeger)，我们没有直接使用这个项目，因为此项目jaeger版本较老，而且已经跟jaeger分离为两个项目，很难合并官方的新功能。
+感谢阿里云logstore fork的[jaeger项目](https://github.com/aliyun/aliyun-log-jaeger)，我们没有直接使用这个项目，因为此项目jaeger版本较老，而且已经跟jaeger分离为两个项目，很难合并官方的新功能。  
 但我们从中copy了大量的代码，在支持阿里云logstore作为backend的基础上，增加了定制化的功能。
